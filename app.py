@@ -82,7 +82,7 @@ if uploaded_file:
     # Initialize map
     # Get the centroid of the uploaded KML geometry for map centering
     centroid = gdf.geometry.centroid.iloc[0]
-    m = leafmap.Map(center=[centroid.y, centroid.x], zoom_to_layer=False, zoom=19)
+    m = leafmap.Map(center=[centroid.y, centroid.x],draw_control=False, zoom_to_layer=False, zoom=19)
     m.add_basemap('SATELLITE', layers_control=True)
     # m.add_basemap("Hybrid")  # Satellite imagery
     style = {
@@ -123,9 +123,6 @@ if uploaded_file:
         draw.add_to(m)
         m.to_streamlit()
 
-
-
-
         uploaded_rois = st.file_uploader("Upload user ROIs", type=["geojson"])
         drawn_features = None
 
@@ -138,23 +135,24 @@ if uploaded_file:
         
 
         # Save button
-        if st.button("💾 Save Annotations as CSV"):
-            gdf_drawn = user_rois_to_bbox(drawn_features, target_crs="EPSG:3857", label="Tree", raster_path=osm_download)
-            gdf_drawn['labelled_by'] = "user"
-            geome['labelled_by'] = "model"
-            # Merge predictions + user annotations
-            final_gdf = pd.concat([geome, gdf_drawn], ignore_index=True)
-            final_gdf["image_path"] = s3_key
-            csv_path = kml_filename.split(".")[0]+"-annotations.csv"
-            final_gdf.to_csv(csv_path, index=False)
-            csv_s3_key = f"annotations/{csv_path}"
-            upload_to_s3(csv_path, csv_s3_key)
-            st.success("Annotations uploaded successfully")
-            st.download_button(
-                label="⬇️ Download CSV",
-                data=open(csv_path, "rb").read(),
-                file_name=csv_path,
-                mime="text/csv",
-            )
-            
+        if drawn_features is not None:
+            if st.button("💾 Save Annotations as CSV"):
+                gdf_drawn = user_rois_to_bbox(drawn_features, target_crs="EPSG:3857", label="Tree", raster_path=osm_download)
+                gdf_drawn['labelled_by'] = "user"
+                geome['labelled_by'] = "model"
+                # Merge predictions + user annotations
+                final_gdf = pd.concat([geome, gdf_drawn], ignore_index=True)
+                final_gdf["image_path"] = s3_key
+                csv_path = kml_filename.split(".")[0]+"-annotations.csv"
+                final_gdf.to_csv(csv_path, index=False)
+                csv_s3_key = f"annotations/{csv_path}"
+                upload_to_s3(csv_path, csv_s3_key)
+                st.success("Annotations uploaded successfully")
+                st.download_button(
+                    label="⬇️ Download CSV",
+                    data=open(csv_path, "rb").read(),
+                    file_name=csv_path,
+                    mime="text/csv",
+                )
+                
 

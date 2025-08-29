@@ -29,56 +29,18 @@ A web-based application for automated tree detection and manual annotation using
 
 ## 🚀 Quick Start
 
-### Option 1: Local Development
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd annotation-tool
-   ```
-
-2. **Create and activate virtual environment**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-3. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Configure AWS credentials**
-   
-   Create a `.streamlit/secrets.toml` file with your AWS credentials:
-   ```toml
-   access_key_id = "your_aws_access_key"
-   secret_access_key = "your_aws_secret_key"
-   bucket_name = "your_s3_bucket_name"
-   region = "your_aws_region"
-   ```
-
-5. **Run the application**
-   ```bash
-   streamlit run app.py
-   ```
-
-   The application will be available at `http://localhost:8501`
-
-### Option 2: Docker Deployment
-
 1. **Build the Docker image**
    ```bash
-   docker build -t tree-annotation-tool .
+   docker build -t annotation-tool .
    ```
 
 2. **Run the container**
    ```bash
-   docker run -p 8501:8501 \
-     -e AWS_ACCESS_KEY_ID=your_access_key \
-     -e AWS_SECRET_ACCESS_KEY=your_secret_key \
-     -e AWS_DEFAULT_REGION=your_region \
-     tree-annotation-tool
+   docker run -it --rm \
+     -v $(pwd):/app \
+     -p 8501:8501 \
+     --env-file .env \
+     annotation-tool
    ```
 
 ## 📖 Usage Guide
