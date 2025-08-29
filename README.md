@@ -38,7 +38,7 @@ A web-based application for automated tree detection and manual annotation using
    ```bash
    docker run -it --rm \
      -v $(pwd):/app \
-     -p 8501:8501 \
+     -p 8888:8888 \
      --env-file .env \
      annotation-tool
    ```
