@@ -50,6 +50,7 @@ st.title("🌳 Tree Annotation Tool")
 model = load_model()
 source = "SATELLITE"
 
+
 def setup_aws_credentials():
     aws_access_key_id = st.secrets["access_key_id"]
     aws_secret_access_key = st.secrets["secret_access_key"]
@@ -79,6 +80,14 @@ if uploaded_file:
 
     concaT_df = get_tree_crowns(gdf, image, model)
 
+    
+    # ---- 1) Persistent state for boxes (GeoJSON Features) ----
+    if "boxes" not in st.session_state:
+        st.session_state.boxes = []           # list of GeoJSON Feature objects
+    if "box_keys" not in st.session_state:
+        st.session_state.box_keys = set()     # quick dedupe
+
+
     # Initialize map
     # Get the centroid of the uploaded KML geometry for map centering
     centroid = gdf.geometry.centroid.iloc[0]
@@ -90,6 +99,12 @@ if uploaded_file:
         "weight": 2,
         "fillOpacity": 0,
     }
+
+    if st.session_state.boxes:
+        m.add_geojson(
+            {"type": "FeatureCollection", "features": st.session_state.boxes},
+            layer_name="Saved boxes",
+        )
 
     if uploaded_url:
         m.add_cog_layer(url=uploaded_url, name="Satellite",zoom_to_layer=False)
@@ -121,7 +136,17 @@ if uploaded_file:
             edit_options={'edit': True}
         )
         draw.add_to(m)
-        m.to_streamlit()
+        out = m.to_streamlit(height=750, key="main_map")
+        new_feat = None
+        if isinstance(out, dict):
+            new_feat = out.get("last_active_drawing") or out.get("last_drawing")
+
+        if new_feat:
+            s = json.dumps(new_feat, sort_keys=True)
+            if s not in st.session_state.box_keys:
+                st.session_state.boxes.append(new_feat)
+                st.session_state.box_keys.add(s)
+
 
         uploaded_rois = st.file_uploader("Upload user ROIs", type=["geojson"])
         drawn_features = None
