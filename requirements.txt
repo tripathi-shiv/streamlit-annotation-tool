@@ -14,6 +14,7 @@ matplotlib
 opencv-python
 rioxarray
 numpy
+dotenv
 segment-geospatial
 boto3
 nest_asyncio
